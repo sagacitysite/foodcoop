@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+Soll die Gruppe {{ group }} wirklich gelöscht werden?
+
+<form class="wide" action="." method="post">{% csrf_token %}
+    <input type="submit" value="Ja" class="btn btn-danger">
+    <a href="{% url 'order_group_list' %}" class="btn btn-success">Nein</a>
+</form>
+{% endblock %}

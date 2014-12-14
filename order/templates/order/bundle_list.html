@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Bestellungsübersicht</h1>
+<ul>
+{% for bundle in bundle_list %}
+  <li>
+    <a href="{{ bundle.get_absolute_url }}">{{ bundle }}</a>
+    <a href="{% url 'order_bundle_delete' bundle.pk %}" class="btn btn-default btn-xs edit" aria-label="Left Align">
+      <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+    </a>
+  </li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'order_bundle_create' %}" class="btn btn-success">
+  <span class="glyphicon glyphicon-plus"></span>
+  Bestellung hinzufügen
+</a>
+{% endblock %}

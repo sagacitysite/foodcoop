@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+Soll die Bestellung {{ bundle }} wirklich gelöscht werden? Alle Bestelldaten gehen unwiederbringlich verloren
+
+<form class="wide" action="." method="post">{% csrf_token %}
+    <input type="submit" value="Ja" class="btn btn-danger">
+    <a href="{% url 'order_bundle_list' %}" class="btn btn-success">Nein</a>
+</form>
+{% endblock %}

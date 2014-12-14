@@ -1,0 +1,4 @@
+django>=1.7
+django-extra-views>=0.6
+pytest>=2.6
+pytest-django>=2.7
