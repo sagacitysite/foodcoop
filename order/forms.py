@@ -5,7 +5,7 @@ from .models import Group, Order, Product
 
 class GroupChooseForm(forms.Form):
     group = forms.ModelChoiceField(
-        queryset=Group.objects.filter(enclosure=True), required=False)
+        queryset=Group.objects.filter(enclosure=True))
 
 
 class OrderForm(forms.ModelForm):

@@ -21,22 +21,29 @@ class BundleDetailView(DetailView):
     model = Bundle
 
     def get(self, request, *args, **kwargs):
-        self.group_form = GroupChooseForm(request.GET)
-        self.active_group = None
-        if self.group_form.is_valid():
-            self.active_group = self.group_form.cleaned_data['group']
+        self.active_group = self.get_active_group(request)
+        return super().get(request, *args, **kwargs)
 
-        if self.active_group:
-            request.session['active_group'] = self.active_group.pk
+    def get_active_group(self, request):
+        """
+        Get the active_group.
+
+        Use either the GET-arguments or the group, saved in the session.
+        Returns the active Group or None.
+        """
+        group_form = GroupChooseForm(request.GET)
+        if group_form.is_valid():
+            active_group = group_form.cleaned_data.get('group')
+            request.session['active_group'] = active_group.pk
+
         elif request.session.get('active_group', None):
             try:
-                self.active_group = Group.objects.get(pk=request.session['active_group'])
+                active_group = Group.objects.get(pk=request.session.get('active_group'))
             except Group.DoesNotExist:
-                self.active_group = None
-            else:
-                self.group_form = GroupChooseForm(initial={'group': self.active_group})
-
-        return super().get(request, *args, **kwargs)
+                active_group = None
+        else:
+            active_group = None
+        return active_group
 
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
@@ -86,7 +93,7 @@ class BundleDetailView(DetailView):
     def get_context_data(self, **context):
         return super().get_context_data(
             products=self.get_products(),
-            group_form=self.group_form,
+            group_form=GroupChooseForm(initial={'group': self.active_group}),
             active_group=self.active_group,
             costs="{:.2f}".format(self.object.price_for_group(self.active_group)),
             **context)
