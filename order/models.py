@@ -3,38 +3,23 @@ from django.core.urlresolvers import reverse
 
 
 class Group(models.Model):
+    """
+    Representing a Group that orders food.
+    """
+
     name = models.CharField(max_length=255)
-    enclosure = models.BooleanField(default=False, verbose_name='Einlage bezahlt')
+    """
+    Name to represent the group.
 
-    def __str__(self):
-        return self.name
+    Will be shown at any place where the group is represented in the website.
+    Is used for the default ordering of a list of groups.
+    """
 
-    def get_absolute_url(self):
-        return reverse('order_group_update', args=[self.pk])
-
-
-class Unit(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    order_name = models.CharField(max_length=255, blank=True)
-    divisor = models.PositiveIntegerField(default=1)
-
-    def __str__(self):
-        return self.name
-
-    @property
-    def price(self):
-        return self.name
-
-    @property
-    def order(self):
-        return self.order_name or self.name
-
-
-class Product(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    unit = models.ForeignKey(Unit, verbose_name='Einheit')
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Preis')  # TODO: use a custom Integerfield
-    available = models.BooleanField(default=True, verbose_name='Verfügbar')
+    enclosure = models.BooleanField(default=False, verbose_name="Einlage bezahlt")
+    """
+    Only groups that have given a enclosure can order food. This attribute saves
+    the state of this payment. If it is False, the group can not order food.
+    """
 
     class Meta:
         ordering = ['name']
@@ -43,16 +28,135 @@ class Product(models.Model):
         return self.name
 
     def get_absolute_url(self):
+        """
+        Returns the default url for the object. A Group does not have a DetailView,
+        so the url UpdateView is returned instead.
+        """
+        return reverse('order_group_update', args=[self.pk])
+
+
+class Unit(models.Model):
+    """
+    A model representing a Unit in which the food is ordered.
+
+    E.G. KG, Liter etc.
+
+    The model differs between the unit for the price and the unit for the order.
+    For example, the price could be in KG but you should order in Gram. In this
+    case the divisor attribute has to be an integer, which can be used to calculate
+    the price for the order. In the example above, it would be 1000.
+
+    To show the name of a unit, you should not use the db-values, but the attributes
+    self.price and self.order.
+    """
+
+    name = models.CharField(max_length=255, unique=True)
+    """
+    Name for the Unit. If order- and price-unit differce. This is the attribute
+    for the price.
+    """
+
+    order_name = models.CharField(max_length=255, blank=True)
+    """
+    Name of the unit shound behinde the a order.
+    """
+
+    divisor = models.PositiveIntegerField(default=1)
+    """
+    Integer used to calculate the price for a order
+    """
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def price(self):
+        """
+        Shows the name of the unit for a price.
+
+        This is always the db-value self.name
+        """
+        return self.name
+
+    @property
+    def order(self):
+        """
+        Shows the name of the unit for an order.
+
+        This is self.name if the name for price and order are the same, else
+        it is the db-field order_name.
+        """
+        return self.order_name or self.name
+
+
+class Product(models.Model):
+    """
+    Model to representing a product (food).
+    """
+
+    name = models.CharField(max_length=255, unique=True)
+    """
+    The Name of the product.
+
+    Lists of products are soted by this field.
+    """
+
+    unit = models.ForeignKey(Unit, verbose_name="Einheit")
+    """
+    The unit in which the product is ordered.
+    """
+
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Preis")  # TODO: use a custom Integerfield
+    """
+    Price of one unit of the product.
+    """
+
+    available = models.BooleanField(default=True, verbose_name="Verfügbar")
+    """
+    Flag to save, if the product can be ordered. If False, it will not be shound
+    in the order-table.
+    """
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        """
+        Returns the UpdateView for a product, because there is no DetailView
+        for a product.
+        """
         return reverse('order_product_update', args=[self.pk])
 
     @property
     def multiplier(self):
+        """
+        Returns a value to calculate the price for the order.
+
+        For example by a price of 1 EUR for a KG, it returns 0.001 (EUR for Gram)
+        """
         return self.price / self.unit.divisor
 
 
 class Bundle(models.Model):
+    """
+    Model to represent all orders from each group for a specific time.
+    """
+
     start = models.DateTimeField(auto_now_add=True)
+    """
+    Time of the order/bundle.
+
+    Sort-attribute for a list of bundles.
+    """
+
     open = models.BooleanField(default=True)
+    """
+    Flag to show, if there can still be orders, or if the time for orders is
+    finished. If open == False, no more orders can be added.
+    """
 
     class Meta:
         get_latest_by = 'start'
@@ -65,8 +169,14 @@ class Bundle(models.Model):
 
     def price_for_group(self, group, delivered=False):
         """
-        Returns the full price for all products for a group.
+        Returns the full price for all products for a specific group.
+
+        This software differes between the order of a group, and the amount of
+        products that are actual delivered. If the attribute delivered is False,
+        the order-price is returned. If delivered is True, the price is shouwn,
+        that the group has to pay.
         """
+        # TODO: Maybe this has to be done in JS, so the method can be deleted.
         query = self.orders.filter(group=group).select_related('product__unit')
         if delivered:
             return sum(order.product.multiplier * order.get_delivered() for order in query)
@@ -74,6 +184,12 @@ class Bundle(models.Model):
             return sum(order.product.multiplier * order.amount for order in query)
 
     def price_for_all(self, delivered=False):
+        """
+        Returns the price for all groups.
+
+        For the attribute delivered, see the method price_for_group.
+        """
+        # TODO: Maybe this has to be done in JS
         query = self.orders.select_related('product__unit')
         if delivered:
             return sum(order.product.multiplier * order.get_delivered() for order in query)
@@ -82,11 +198,23 @@ class Bundle(models.Model):
 
 
 class Order(models.Model):
+    """
+    Model representing the order of one group for one product for one bundle.
+    """
+
     group = models.ForeignKey(Group)
     product = models.ForeignKey(Product)
+    bundle = models.ForeignKey(Bundle, related_name='orders')
+
     amount = models.PositiveIntegerField(default=0, blank=True)
     delivered = models.PositiveIntegerField(null=True, blank=True)
-    bundle = models.ForeignKey(Bundle, related_name='orders')
+    """
+    The model differentiate between the amount ordered and the amount that was
+    actual delivered.
+
+    The attribute delivered should not be used directly, but with the method
+    get_delivered.
+    """
 
     class Meta:
         unique_together = ('group', 'product', 'bundle')
@@ -96,4 +224,8 @@ class Order(models.Model):
         return "{:<10} {:5} x {}".format("%s:" % self.group, self.amount, self.product)
 
     def get_delivered(self):
+        """
+        Returns the db-value delivered if it is not None, else the db-value
+        amount.
+        """
         return self.delivered if self.delivered is not None else self.amount
