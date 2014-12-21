@@ -40,7 +40,7 @@ $(function() {
         amount: self.val(),
       },
       success: function(data) {
-        $('#order_costs').html(data['costs']);
+        $('#order_costs').html(data['price_for_group']);
       }
     });
   });

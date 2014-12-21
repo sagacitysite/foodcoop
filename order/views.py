@@ -14,15 +14,44 @@ from .forms import GroupChooseForm, OrderForm
 
 
 class BundleListView(ListView):
+    """
+    View to show all Bundles.
+    """
+
     model = Bundle
 
 
 class BundleDetailView(DetailView):
+    """
+    View to show one Bundle.
+
+    This view is used to save the order. It has functionality to send a form to
+    django, or to send data via ajax.
+    """
+
     model = Bundle
 
     def get(self, request, *args, **kwargs):
+        """
+        Starter method if the view is requested with a get-request.
+        """
         self.active_group = self.get_active_group(request)
         return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Starter method if the view is requested with a post-request.
+
+        This is the case if the order-form is submitted, or if data is send via
+        ajax.
+        """
+        self.active_group = self.get_active_group(request)
+        if request.is_ajax():
+            # self.object is filled in self.get or self.post, which are not called here
+            self.object = self.get_object()
+            return self.ajax(request, *args, **kwargs)
+        else:
+            return super().get(request, *args, **kwargs)
 
     def get_active_group(self, request):
         """
@@ -31,42 +60,48 @@ class BundleDetailView(DetailView):
         Use either the GET-arguments or the group, saved in the session.
         Returns the active Group or None.
         """
+        # Try to use the GET-Data
         group_form = GroupChooseForm(request.GET)
         if group_form.is_valid():
             active_group = group_form.cleaned_data.get('group')
             request.session['active_group'] = active_group.pk
 
+        # Try to use the session
         elif request.session.get('active_group', None):
             try:
                 active_group = Group.objects.get(pk=request.session.get('active_group'))
             except Group.DoesNotExist:
                 active_group = None
+
+        # There are no data about the active group
         else:
             active_group = None
         return active_group
 
-    def post(self, request, *args, **kwargs):
-        if request.is_ajax():
-            return self.ajax(request, *args, **kwargs)
-        else:
-            return self.get(request, *args, **kwargs)
-
     def ajax(self, request, *args, **kwargs):
+        """
+        Receives the data via ajax.
+
+        The expected data is the amount for one product for one product. Send more
+        then one ajax-request to save more then one product.
+
+        The response is json in the form:
+        {'price_for_group': 5.49}
+        """
         try:
-            active_group = Group.objects.get(pk=request.session.get('active_group', None))
-        except Group.DoesNotExist:
-            pass  # TODO: send an error
+            product = Product.objects.get(pk=request.POST['product'])
+        except Product.DoesNotExist:
+            return_data = {'error': "product {} not found".format(request.POST['product'])}
+        except KeyError:
+            return_data = {'error': "no product data in request"}
         else:
-            object = self.get_object()
-            try:
-                product = Product.objects.get(pk=request.POST['product'])
-            except Product.DoesNotExist:
-                pass  # TODO: send an error
-            else:
-                order, __ = Order.objects.get_or_create(product=product, bundle=object, group=active_group)
-                order.amount = request.POST['amount']
-                order.save()
-                return HttpResponse(json.dumps({'costs': "{:.2f}".format(object.price_for_group(active_group))}))
+            # Create the Order-object if necessary
+            order, __ = Order.objects.get_or_create(product=product, bundle=self.object, group=self.active_group)
+            order.amount = int(request.POST['amount'])
+            order.save()
+            return_data = {'price_for_group': "{:.2f}".format(self.object.price_for_group(self.active_group))}
+
+        return HttpResponse(json.dumps(return_data))
 
     def get_products(self):
         products = Product.objects.filter(available=True).select_related()
