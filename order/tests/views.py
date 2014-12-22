@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import json
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from order import views
 from order.models import Unit, Product
@@ -110,7 +110,7 @@ class TestBundleDetailView:
         Test the normal get method.
         """
         view = views.BundleDetailView()
-        view.request = request = rf.get('/', {})
+        view.request = request = rf.get('/')
         request.session = MagicMock()
         request.session.get.return_value = False
         bundle_mock = MagicMock()
@@ -133,3 +133,96 @@ class TestBundleDetailView:
         response = view.post(request)
 
         assert response.status_code == 200
+
+    def test_post_on_closed_bundles(self, rf):
+        view = views.BundleDetailView()
+        view.request = request = rf.post('/', {})
+        request.session = MagicMock()
+        request.session.get.return_value = False
+        bundle_mock = MagicMock()
+        bundle_mock.open = False
+        view.get_object = MagicMock(return_value=bundle_mock)
+
+        with pytest.raises(PermissionDenied):
+            view.post(request)
+
+
+class TestBundleOrderView:
+    def test_get_products(self, rf):
+        product1, product2, order1, order2, order3 = (MagicMock() for __ in range(5))
+        order1.product = order2.product = product1
+        order3.product = product2
+        order1.amount, order2.amount, order3.amount = (1, 2, 4)
+        product1.name, product2.name = ('zzz', 'aaa')
+        product1.multiplier, product2.multiplier = (2, 4)
+        view = views.BundleOrderView()
+        view.request = request = rf.get('/')
+        view.object = MagicMock()
+        view.object.orders.all().select_related.return_value = [order1, order2, order3]
+
+        products = view.get_products()
+
+        assert products == [product2, product1]
+        assert product1.amount == 3
+        assert product2.amount == 4
+        assert product1.order_price == 6
+        assert product2.order_price == 16
+
+
+class TestBundleOutputView:
+    @patch('order.models.Group.objects')
+    @patch('order.models.Order.objects')
+    @patch('order.models.Product.objects')
+    def test_ajax(self, product_manager, order_manager, group_manager, rf):
+        """
+        Test to send order data via ajax
+        """
+        order_mock = MagicMock()
+        product_manager.get.return_value = 'My test product'
+        group_manager.get.return_value = 'My test group'
+        order_manager.get_or_create.return_value = (order_mock, None)
+        order_manager.filter().aggregate.return_value = {'delivered': 999}
+        request = rf.post('/', {'product': 1, 'group': 1, 'delivered': 300})
+        view = views.BundleOutputView()
+        view.object = MagicMock()
+        view.object.price_for_group.return_value = 500
+        view.object.price_for_all.return_value = 1000
+
+        response = view.ajax(request)
+
+        assert response.status_code == 200
+        assert json.loads(response.content.decode('utf-8')) == {
+            'price_for_group': '500.00',
+            'price_for_all': '1000.00',
+            'product_delivered': 999}
+        assert order_mock.delivered == '300'
+        order_mock.save.assert_called_with()
+        order_manager.get_or_create.assert_called_with(
+            product='My test product', bundle=view.object, group='My test group')
+
+    @patch('order.models.Product.objects')
+    def test_ajax_no_product(self, product_manager, rf):
+        """
+        Test to send order data via ajax, unkonwn product.
+        """
+        product_manager.get.side_effect = Product.DoesNotExist('Product does not exist')
+        view = views.BundleOutputView()
+        request = rf.post('/', {'product': 1, 'group': 1, 'delivered': 300})
+
+        response = view.ajax(request)
+
+        assert response.status_code == 200
+        assert json.loads(response.content.decode('utf-8')) == {'error': 'Group or product not found'}
+
+    def test_ajax_wrong_data(self, rf):
+        """
+        Test to send data via ajax, but without data.
+        """
+        view = views.BundleOutputView()
+        request = rf.post('/', {})
+
+        response = view.ajax(request)
+
+        assert response.status_code == 200
+        assert json.loads(response.content.decode('utf-8')) == {'error': 'No product or group data in request'}
+

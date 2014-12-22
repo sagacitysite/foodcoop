@@ -7,7 +7,9 @@
   {{ group_form }}
   <input class="btn btn-success btn-xs" type="submit" value="Neu Laden">
 </form>
-<strong>Preis:</strong> <span id="order_costs">{{ costs }}</span> €
+{% if active_group %}
+<strong>Preis:</strong> <span id="order_costs">{{ price_for_group }}</span> €
+{% endif %}
 
 <form action="" method="post">{% csrf_token %}
   <table class="table table-striped">

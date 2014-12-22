@@ -57,11 +57,11 @@ $(function() {
       data: {
         group: group,
         product: product,
-        amount: self.val(),
+        delivered: self.val(),
       },
       success: function(data) {
-        $('#price-' + group).html(data['costs']);
-        $('#order_costs').html(data['price_all']);
+        $('#price-' + group).html(data['price_for_group']);
+        $('#order_costs').html(data['price_for_all']);
         $('#product-delivered-' + product).html(data['product_delivered']);
       }
     });
