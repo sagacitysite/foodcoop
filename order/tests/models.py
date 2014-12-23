@@ -1,6 +1,6 @@
 import pytest
 
-from order.models import Group, Unit, Product, Bundle
+from order.models import Bundle, Group, Product, Unit
 
 
 @pytest.fixture
@@ -19,6 +19,7 @@ def bundle_db():
     bundle.orders.create(group=other, product=rice, amount=1800, delivered=1500)
     return db
 
+
 @pytest.mark.django_db
 class TestBundle:
     def test_price_for_group(self, bundle_db):
@@ -36,13 +37,13 @@ class TestBundle:
     def test_has_unknown_price_true(self, bundle_db):
         apple = Product.objects.create(name='apple', unit=bundle_db['kilo'])
         bundle_db['bundle'].orders.create(group=bundle_db['me'], product=apple, amount=3)
-        assert bundle_db['bundle'].has_unknown_price() == True
+        assert bundle_db['bundle'].has_unknown_price()
 
     def test_has_unknown_price_false(self, bundle_db):
         assert not bundle_db['bundle'].has_unknown_price()
 
     def test_has_unknown_price_not_in_group(self, bundle_db):
-        apple = Product.objects.create(name='apple', unit=bundle_db['kilo'])
+        Product.objects.create(name='apple', unit=bundle_db['kilo'])
         assert not bundle_db['bundle'].has_unknown_price(bundle_db['me'])
 
     def test_has_unknown_price_group_did_not_order(self, bundle_db):
@@ -59,6 +60,7 @@ class TestBundle:
         apple = Product.objects.create(name='apple', unit=bundle_db['kilo'])
         bundle_db['bundle'].orders.create(group=bundle_db['me'], product=apple, amount=3)
         assert bundle_db['bundle'].has_unknown_price(bundle_db['me'])
+
 
 @pytest.mark.django_db
 class TestUnit:

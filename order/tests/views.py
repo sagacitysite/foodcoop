@@ -1,11 +1,11 @@
-from unittest.mock import MagicMock, patch
-import pytest
 import json
+from unittest.mock import MagicMock, patch
 
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+import pytest
+from django.core.exceptions import PermissionDenied
 
 from order import views
-from order.models import Unit, Product
+from order.models import Product
 
 
 class TestBundleDetailView:
@@ -52,7 +52,6 @@ class TestBundleDetailView:
 
             assert view.get_active_group(request) == group_mock
             # TODO: test 99 in session
-
 
     @patch('order.models.Order.objects')
     @patch('order.models.Product.objects')
@@ -156,7 +155,7 @@ class TestBundleOrderView:
         product1.name, product2.name = ('zzz', 'aaa')
         product1.multiplier, product2.multiplier = (2, 4)
         view = views.BundleOrderView()
-        view.request = request = rf.get('/')
+        view.request = rf.get('/')
         view.object = MagicMock()
         view.object.orders.all().select_related.return_value = [order1, order2, order3]
 
@@ -232,8 +231,8 @@ class TestBundleOutputView:
         # Group1 orders product0 and 1
         # Group2 orders product0
         # Noone orders product2
-        order[0].group = order[1].group  = 'Group1'
-        order[2].group  = 'Group2'
+        order[0].group = order[1].group = 'Group1'
+        order[2].group = 'Group2'
         order[0].product = order[2].product = product[0]
         order[1].product = product[1]
         for i in range(3):
@@ -260,4 +259,3 @@ class TestBundleOutputView:
             'view': view}
         assert context['products'][0].delivered == 8
         assert context['products'][1].delivered == 4
-

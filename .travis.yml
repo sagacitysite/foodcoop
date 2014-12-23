@@ -1,0 +1,9 @@
+language: python
+python:
+  - "3.3"
+  - "3.4"
+install: "pip install -r requirements.txt"
+script:
+  - "py.test --cov-report=term-missing"
+  - "flake8 --max-line-length=120 order"
+  - "isort -l 100 -df -c order/*.py order/*/*.py"

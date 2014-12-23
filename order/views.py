@@ -1,16 +1,17 @@
-from collections import defaultdict
 import json
+from collections import defaultdict
 
-from django.core.urlresolvers import reverse, reverse_lazy
-from django.views.generic import ListView, DetailView, UpdateView, CreateView, RedirectView, DeleteView
-from django.views.generic.detail import SingleObjectMixin
-from django.http import HttpResponse
-from django.db.models import Sum
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.urlresolvers import reverse, reverse_lazy
+from django.db.models import Sum
+from django.http import HttpResponse
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView, RedirectView,
+                                  UpdateView)
+from django.views.generic.detail import SingleObjectMixin
 from extra_views import ModelFormSetView
 
-from .models import Bundle, Product, Group, Order
 from .forms import GroupChooseForm, OrderForm
+from .models import Bundle, Group, Order, Product
 
 
 class BundleListView(ListView):
@@ -323,7 +324,7 @@ class BundleOutputView(DetailView):
                 product_delivered = query.aggregate(delivered=Sum('delivered'))['delivered']
                 return_data = {
                     'price_for_group': "{:.2f}".format(self.object.price_for_group(group, delivered=True)),
-                    'price_for_all': "{:.2f}".format(self.object.price_for_all(delivered=True)),  # TODO: rename to price_for_all
+                    'price_for_all': "{:.2f}".format(self.object.price_for_all(delivered=True)),
                     'product_delivered': product_delivered}
         return HttpResponse(json.dumps(return_data))
 
