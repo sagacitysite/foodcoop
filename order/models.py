@@ -106,7 +106,8 @@ class Product(models.Model):
     The unit in which the product is ordered.
     """
 
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Preis")  # TODO: use a custom Integerfield
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True,
+                                blank=True, verbose_name="Preis")  # TODO: use a custom Integerfield
     """
     Price of one unit of the product.
     """
@@ -137,6 +138,8 @@ class Product(models.Model):
 
         For example by a price of 1 EUR for a KG, it returns 0.001 (EUR for Gram)
         """
+        if self.price is None:
+            return 0
         return self.price / self.unit.divisor
 
 
@@ -166,6 +169,29 @@ class Bundle(models.Model):
 
     def get_absolute_url(self):
         return reverse('order_bundle_detail', args=[self.pk])
+
+    def has_unknown_price(self, group=None, delivered=False):
+        """
+        Returns True or False, if there is a relevant product in the bundle,
+        which has no price.
+
+        if group is set to a group, relevant products are only those, ordered
+        from the group.
+
+        if delivered is True, products where nothing was delivered are ignored
+        """
+        kwargs = {'delivered': 0} if delivered else {'amount': 0}
+        query = self.orders.exclude(**kwargs).filter(product__price=None)
+        if group is None:
+            return query.exists()
+        else:
+            return query.filter(group=group).exists()
+
+    def has_unknown_price_delivered(self):
+        """
+        Method for the template where the attribute delivered can not be set
+        """
+        return self.has_unknown_price(delivered=True)
 
     def price_for_group(self, group, delivered=False):
         """

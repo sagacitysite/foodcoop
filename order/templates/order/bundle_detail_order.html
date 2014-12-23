@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Bestellübersicht: {{ bundle }}</h1>
 
-<strong>Gesamtpreis:</strong> <span id="order_costs">{{ order_price|floatformat:2 }}</span> €
+<strong>Gesamtpreis:</strong> <span id="order_costs"{% if bundle.has_unknown_price %} class="price_unknown" title="Enthält Produkte ohne Preis"{% endif %}>{{ order_price|floatformat:2 }}</span> €
 
 {% if bundle.open %}
 <div>

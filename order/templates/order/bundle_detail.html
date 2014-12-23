@@ -8,7 +8,7 @@
   <input class="btn btn-success btn-xs" type="submit" value="Neu Laden">
 </form>
 {% if active_group %}
-<strong>Preis:</strong> <span id="order_costs">{{ price_for_group }}</span> €
+<strong>Preis:</strong> <span id="order_costs"{% if price_unknown %} class="price_unknown" title="Enthält Produkte ohne Preis"{% endif %}>{{ price_for_group }}</span> €
 {% endif %}
 
 <form action="" method="post">{% csrf_token %}

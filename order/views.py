@@ -147,12 +147,14 @@ class BundleDetailView(DetailView):
         * group_from = form to choose the active_group
         * active_group = the active_group
         * price_for_group = the costs for the active_group
+        * price_unknown = True, if not all ordered products have a price
         """
         return super().get_context_data(
             products=self.get_products(),
             group_form=GroupChooseForm(initial={'group': self.active_group}),
             active_group=self.active_group,
             price_for_group="{:.2f}".format(self.object.price_for_group(self.active_group)),
+            price_unknown=self.object.has_unknown_price(self.active_group),
             **context)
 
 
@@ -333,7 +335,7 @@ class BundleOutputView(DetailView):
                     actual delivered amount of the product.
 
         * groups:   dict where the key is a group-object and value is a two-value
-                    tuple where the first element is a dict and the second element
+                    list where the first element is a dict and the second element
                     the price the group has to pay. The key of the inner dict is
                     is an product-object and the value the relevant order-object.
 

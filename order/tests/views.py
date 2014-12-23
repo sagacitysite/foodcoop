@@ -226,3 +226,38 @@ class TestBundleOutputView:
         assert response.status_code == 200
         assert json.loads(response.content.decode('utf-8')) == {'error': 'No product or group data in request'}
 
+    def test_get_context_data(self, rf):
+        product = [MagicMock(name='p0'), MagicMock(name='p1'), MagicMock(name='p2')]
+        order = [MagicMock(name='o0'), MagicMock(name='o1'), MagicMock(name='o2')]
+        # Group1 orders product0 and 1
+        # Group2 orders product0
+        # Noone orders product2
+        order[0].group = order[1].group  = 'Group1'
+        order[2].group  = 'Group2'
+        order[0].product = order[2].product = product[0]
+        order[1].product = product[1]
+        for i in range(3):
+            order[i].get_delivered.return_value = (i + 1) * 2
+            order[i].amount = (i + 1) * 2
+            order[i].product.multiplier = 1
+            product[i].name = 'product%d' % i
+
+        view = views.BundleOutputView()
+        view.object = MagicMock()
+        view.object.orders.all().select_related.return_value = order
+
+        context = view.get_context_data()
+
+        assert context == {
+            'groups': {'Group1': [{product[1]: order[1],
+                                   product[0]: order[0]},
+                                  6],
+                       'Group2': [{product[0]: order[2]},
+                                  6]},
+            'object': view.object,
+            'price_for_all': 12,
+            'products': [product[0], product[1]],
+            'view': view}
+        assert context['products'][0].delivered == 8
+        assert context['products'][1].delivered == 4
+

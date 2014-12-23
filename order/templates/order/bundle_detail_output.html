@@ -4,7 +4,7 @@
 {% block content %}
 <h1>Essensausgabe: {{ bundle }}</h1>
 
-<strong>Gesamtpreis:</strong> <span id="order_costs">{{ price_for_all|floatformat:2 }}</span> €
+<strong>Gesamtpreis:</strong> <span id="order_costs"{% if bundle.has_unknown_price_delivered %} class="price_unknown" title="Enthält Produkte ohne Preis"{% endif %}>{{ price_for_all|floatformat:2 }}</span> €
 
 <table class="table table-striped">
   <tr>
