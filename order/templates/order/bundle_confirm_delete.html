@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-Soll die Bestellung {{ bundle }} wirklich gelöscht werden? Alle Bestelldaten gehen unwiederbringlich verloren
+<h1>Bestellung löschen?</h1>
+<div class="msg msg-warning">Soll die <strong>{{ bundle }}</strong> wirklich gelöscht werden? Alle Bestelldaten gehen unwiederbringlich verloren!</div>
 
 <form class="wide" action="." method="post">{% csrf_token %}
-    <input type="submit" value="Ja" class="btn btn-danger">
-    <a href="{% url 'order_bundle_list' %}" class="btn btn-success">Nein</a>
+    <input type="submit" value="Ja">
 </form>
+<button onclick="location.href='{% url 'order_bundle_list' %}'">Nein</button>
+
 {% endblock %}

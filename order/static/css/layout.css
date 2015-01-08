@@ -1,0 +1,136 @@
+#wrapper {
+    background-color: rgba(255,255,255,0.5);
+    margin: 2em 10em 1em 10em;
+    padding: 1em 1em 0 1em;
+    box-shadow: 0 0 3px rgba(0,0,0,0.2);
+}
+
+@media only screen and (max-device-width: 480px) {
+    #wrapper { margin: 0; }
+}
+
+#header {
+    padding: 0 6px;
+    border-radius: 4px 4px 0 0;
+    background-color: rgba(143,111,78,0.2);
+}
+
+#header h1 {
+    font-weight: 300;
+    margin: 0;
+    text-shadow: 0 0 2px #aaa;
+    background: transparent url('../img/logo.png') no-repeat center left;
+    line-height: 2.5em;
+    padding-left: 70px;
+}
+
+#content {}
+
+/* ##### NAVIGATION ##### */
+
+nav ul { list-style: none; }
+nav li { float: left; }
+
+/* Menu */
+
+nav#menu { background: #8F6F4E url('../img/menu.png') repeat-x top left; }
+nav#menu ul { height: 30px; }
+
+nav#menu li a,
+nav#menu li a:active {
+    color: #fff;
+    display: block;
+    font-size: 13px;
+    text-decoration: none;
+    line-height: 30px;
+    padding: 0 0.6em;
+}
+
+nav#menu li a:hover,
+nav#menu li a:focus {
+    color: #ccc;
+}
+
+/* Foot-Menu */
+
+#footer {
+    border-top: 1px solid rgba(143, 111, 78, 0.2);
+    padding-bottom: 0.2em;
+    margin-top: 1em;
+}
+
+nav#foot {
+    text-align: center;
+}
+
+nav#foot ul {
+    height: 10px;
+    display: inline-block;
+}
+
+nav#foot li a,
+nav#foot li a:active {
+    color: #333;
+    display: block;
+    font-size: 10px;
+    line-height: 10px;
+    text-decoration: none;
+    padding: 0 0.6em;
+}
+
+nav#foot li a:hover,
+nav#foot li a:focus {
+    color: #999;
+}
+
+/* Settings */
+
+nav#set {
+    /*padding-bottom: 0.2em;*/
+    border-bottom: 1px solid rgba(143,111,78,0.2);
+    margin-bottom: 1em;
+}
+
+nav#set ul {
+    display: inline-block;
+    width: 100%;
+}
+
+nav#set li a {
+    padding-right: 0.8em;
+}
+
+/* ##### CLASSES ##### */
+
+.clear { clear: both; }
+
+/* Icon-Buttons */
+
+.icon {
+    padding-left: 20px;
+    min-height: 16px;
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-color: transparent;
+}
+
+.icon-add { background-image: url('../img/add.png'); }
+.icon-del { background-image: url('../img/del.png'); }
+.icon-order-close { background-image: url('../img/stop.png'); }
+.icon-order-open { background-image: url('../img/start.png'); }
+.icon-overview { background-image: url('../img/overview.png'); }
+.icon-out { background-image: url('../img/out.png'); }
+
+/* Messages */
+
+.msg {
+    border: 1px solid #fc0;
+    background-color: #ffc;
+    padding: 0.5em;
+    margin-bottom: 0.8em;
+}
+
+/* Table */
+
+tr.active td { background-color: #ded; }
+tr.inactive td { background-color: #edd; }

@@ -1,0 +1,63 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Open Sans", sans-serif;
+    font-weight: 300;
+    background: transparent url('../img/bg.png') repeat left top;
+}
+
+/* ##### TEXT ##### */
+
+h1,h2,h3,h4,h5,h6 {
+    font-weight: 400;
+}
+
+h1 {
+    font-size: 1.8em;
+    margin: 0.5em 0;
+}
+
+p { margin-bottom: 0.8em; }
+strong { font-weight: 400; }
+
+#content a {
+    color: #600;
+    text-decoration: none;
+}
+
+#content a:hover, a:focus {
+    text-decoration: underline;
+}
+
+ul {
+    list-style-position: inside;
+}
+
+/* ##### TABLE ##### */
+
+table {
+    margin: 0.8em 0;
+    border-collapse: collapse;
+}
+
+th,td {
+    text-align: left;
+    padding: 0.2em 0.4em;
+}
+
+th {
+    background-color: #d0d0d0;
+    font-weight: 400;
+}
+
+td {
+    background-color: #e0e0e0;
+}
+
+td.center {
+    text-align: center;
+}
+

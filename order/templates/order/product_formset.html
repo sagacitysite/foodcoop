@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Produkt: {{ product }}</h1>
+<h1>Produkte</h1>
 
 <form action="" method="post">{% csrf_token %}
     {% for form in formset %}
@@ -10,7 +10,7 @@
     </div>
     {% endfor %}
     {{ formset.management_form }}
-    <input class="btn btn-success" type="submit" value="OK">
+    <input class="btn btn-success" type="submit" value="Speichern">
 </form>
 
 {% endblock %}

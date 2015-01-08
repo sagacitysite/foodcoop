@@ -3,6 +3,28 @@
 {% block content %}
 <h1>{{ bundle }}</h1>
 
+<nav id="set">
+    <ul>
+        <li>
+            {% if bundle.open %}
+            <a href="{% url 'order_bundle_close' bundle.pk %}" class="icon icon-order-close">
+            Bestellung abschließen
+            </a>
+            {% else %}
+            <a href="{% url 'order_bundle_open' bundle.pk %}" class="icon icon-order-open">
+            Bestellung wieder öffnen
+            </a>
+            {% endif %}
+        </li>
+        <li>
+            <a href="{% url 'order_bundle_order' bundle.pk %}" class="icon icon-overview">Bestellübersicht</a>
+        </li>
+        <li>
+            <a href="{% url 'order_bundle_output' bundle.pk %}" class="icon icon-out">Essensausgabe</a>
+        </li>
+    </ul>
+</nav>
+
 <form action="" method="get">
   {{ group_form }}
   <input class="btn btn-success btn-xs" type="submit" value="Neu Laden">
@@ -47,20 +69,6 @@
   <input class="btn btn-success" type="submit" value="Bestellung speichern">
   {% endif %}
 </form>
-
-{% if bundle.open %}
-  <a href="{% url 'order_bundle_close' bundle.pk %}" class="btn btn-info">
-    <span class="glyphicon glyphicon-check"></span>
-    Bestellung beenden
-  </a>
-{% else %}
-  <a href="{% url 'order_bundle_open' bundle.pk %}" class="btn btn-info">
-    <span class="glyphicon glyphicon-check"></span>
-    Bestellung wieder öffnen
-  </a>
-{% endif %}
-<div><a href="{% url 'order_bundle_order' bundle.pk %}">Bestellübersicht</a></div>
-<div><a href="{% url 'order_bundle_output' bundle.pk %}">Essensausgabe</a></div>
 {% endblock %}
 
 {% block javascript %}
