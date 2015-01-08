@@ -1,5 +1,5 @@
-# Virtual
 venv/
+.venv/
 
 # django
 db.sqlite3
